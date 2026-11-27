@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const CATEGORY_LABELS = {
   misleading_domain: "Misleading Domain",
@@ -72,6 +72,10 @@ function RiskMeter({ score, level }) {
 
 export default function ReportView({ report, onReset }) {
   const [showRedFlags, setShowRedFlags] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [report.id]);
 
   const sortedFlags = [...report.redFlags].sort((a, b) => {
     const order = { critical: 0, high: 1, medium: 2, low: 3 };

@@ -12,11 +12,21 @@ export default function VerifyPage() {
 
   const isBlurred = !loading && !user;
 
+  const handleResult = (newReport) => {
+    setReport(newReport);
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  };
+
+  const handleReset = () => {
+    setReport(null);
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  };
+
   return (
     <div className="auth-wrapper">
       <div className={`page-container ${isBlurred ? "auth-blurred" : ""}`} style={{ maxWidth: 900 }}>
         {report ? (
-          <ReportView report={report} onReset={() => setReport(null)} />
+          <ReportView report={report} onReset={handleReset} />
         ) : (
           <>
             <div style={{ marginBottom: 32 }}>
@@ -30,7 +40,7 @@ export default function VerifyPage() {
             </div>
 
             <div className="card">
-              <VerificationForm onResult={setReport} />
+              <VerificationForm onResult={handleResult} />
             </div>
           </>
         )}
