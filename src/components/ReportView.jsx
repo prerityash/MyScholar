@@ -1,16 +1,5 @@
 "use client";
 
-const CATEGORY_LABELS = {
-  misleading_domain: "Misleading Domain",
-  payment_demand: "Payment Demands",
-  fake_organization: "Fake Organization",
-  copied_content: "Copied Content",
-  suspicious_language: "Suspicious Language",
-  urgency_pressure: "Urgency / Pressure",
-  data_harvesting: "Data Harvesting",
-  unrealistic_promise: "Unrealistic Promises",
-};
-
 const SEVERITY_COLORS = {
   critical: "var(--accent-red)",
   high: "var(--accent-orange)",
@@ -74,8 +63,6 @@ export default function ReportView({ report, onReset }) {
     return order[a.severity] - order[b.severity];
   });
 
-  const maxCatScore = Math.max(...Object.values(report.categoryScores), 1);
-
   return (
     <div>
       {/* Header */}
@@ -99,54 +86,6 @@ export default function ReportView({ report, onReset }) {
         </p>
       </div>
 
-      {/* Category Breakdown (Deductions from 100) */}
-      <div className="card" style={{ marginTop: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
-          <h3 style={{ margin: 0 }}>📊 Deductions from Base Score (100 pts)</h3>
-          {report.deductions > 0 ? (
-            <span style={{ fontSize: "0.8125rem", color: "var(--accent-red)", fontWeight: 600 }}>
-              Total Deducted: -{report.deductions} pts
-            </span>
-          ) : (
-            <span style={{ fontSize: "0.8125rem", color: "var(--accent-green)", fontWeight: 600 }}>
-              Clean: 0 pts deducted
-            </span>
-          )}
-        </div>
-
-        {Object.entries(report.categoryScores)
-          .filter(([, score]) => score > 0)
-          .sort(([, a], [, b]) => b - a)
-          .map(([cat, score]) => (
-            <div key={cat} className="category-bar">
-              <span className="category-label">{CATEGORY_LABELS[cat]}</span>
-              <div className="category-track">
-                <div
-                  className="category-fill"
-                  style={{
-                    width: `${(score / maxCatScore) * 100}%`,
-                    background:
-                      score > 20
-                        ? "var(--accent-red)"
-                        : score > 10
-                          ? "var(--accent-orange)"
-                          : score > 5
-                            ? "var(--accent-yellow)"
-                            : "var(--accent-blue)",
-                  }}
-                >
-                  -{score} pts
-                </div>
-              </div>
-            </div>
-          ))}
-        {Object.values(report.categoryScores).every((s) => s === 0) && (
-          <p style={{ color: "var(--text-muted)", margin: 0 }}>
-            No penalties deducted — the listing appears clean with a perfect 100/100 score.
-          </p>
-        )}
-      </div>
-
       {/* Red Flags */}
       <div style={{ marginTop: 16 }}>
         <h3 style={{ marginBottom: 16 }}>
@@ -155,7 +94,7 @@ export default function ReportView({ report, onReset }) {
         {sortedFlags.length === 0 ? (
           <div className="card">
             <p style={{ color: "var(--text-muted)", margin: 0, textAlign: "center" }}>
-              ✅ No red flags detected — 0 deductions
+              ✅ No red flags detected
             </p>
           </div>
         ) : (
