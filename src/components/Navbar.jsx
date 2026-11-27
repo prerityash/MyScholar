@@ -7,20 +7,17 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
+
+  // The navbar remains hidden until the user is successfully logged in
+  if (loading || !user) {
+    return null;
+  }
 
   const links = [
     { href: "/", label: "Home" },
     { href: "/verify", label: "Verify" },
   ];
-
-  const handleLoginClick = () => {
-    const emailInput = document.querySelector(".auth-modal-card input[type='email']");
-    if (emailInput) {
-      emailInput.focus();
-      emailInput.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  };
 
   return (
     <nav className="nav glass">
@@ -48,42 +45,26 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Light / Dark Mode Toggle button placed BEFORE Login button */}
+          {/* Light / Dark Mode Toggle button placed BEFORE user info / sign out */}
           <ThemeToggle />
 
-          {/* Login Button or User Info Pill */}
-          {user ? (
-            <div className="nav-user-pill">
-              <span className="nav-user-avatar">
-                {(user.name || user.email || "U")[0].toUpperCase()}
-              </span>
-              <span className="nav-user-name" title={user.email}>
-                {user.name || user.email}
-              </span>
-              <button
-                type="button"
-                onClick={logout}
-                className="btn-logout"
-                title="Sign out"
-              >
-                Sign Out
-              </button>
-            </div>
-          ) : (
+          {/* User Info Pill & Logout */}
+          <div className="nav-user-pill">
+            <span className="nav-user-avatar">
+              {(user.name || user.email || "U")[0].toUpperCase()}
+            </span>
+            <span className="nav-user-name" title={user.email}>
+              {user.name || user.email}
+            </span>
             <button
               type="button"
-              onClick={handleLoginClick}
-              className="btn btn-primary"
-              style={{
-                padding: "6px 18px",
-                fontSize: "0.8125rem",
-                borderRadius: "999px",
-                cursor: "pointer",
-              }}
+              onClick={logout}
+              className="btn-logout"
+              title="Sign out"
             >
-              Login
+              Sign Out
             </button>
-          )}
+          </div>
         </div>
       </div>
     </nav>

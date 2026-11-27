@@ -77,7 +77,7 @@ export default function AuthModal() {
           <p className="auth-card-subtitle">
             {isRegister
               ? "Create your account to verify scholarships safely"
-              : "Sign in with your Prisma-verified credentials to unlock the portal"}
+              : "Sign in with yourcredentials to unlock the portal"}
           </p>
         </div>
 
