@@ -10,7 +10,7 @@ export default function Home() {
           <span className="gradient-text">Scholarship Scams</span>
         </h1>
         <p>
-          ScholarShield analyzes scholarship listings for suspicious patterns —
+          MyScholar analyzes scholarship listings for suspicious patterns —
           misleading domains, payment demands, fake organizations, copied
           content, and deceptive language — so you can apply with confidence.
         </p>

@@ -17,7 +17,7 @@ export default function Navbar() {
     <nav className="nav glass">
       <Link href="/" className="nav-brand" style={{ textDecoration: "none", color: "inherit" }}>
         <div className="shield-icon">🛡️</div>
-        <span className="gradient-text">ScholarShield</span>
+        <span className="gradient-text">MyScholar</span>
       </Link>
 
       <div className="nav-links">
