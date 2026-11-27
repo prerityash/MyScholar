@@ -1,8 +1,7 @@
-import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "MyScholar – Scholarship Verification Portal",
   description:
     "Analyze scholarship listings for scam patterns including misleading domains, payment demands, fake organizations, copied content, and suspicious language.",
@@ -18,11 +17,7 @@ const themeInitScript = `
 })();
 `;
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>

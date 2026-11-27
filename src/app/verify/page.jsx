@@ -3,10 +3,9 @@
 import { useState } from "react";
 import VerificationForm from "@/components/VerificationForm";
 import ReportView from "@/components/ReportView";
-import { VerificationReport } from "@/lib/types";
 
 export default function VerifyPage() {
-  const [report, setReport] = useState<VerificationReport | null>(null);
+  const [report, setReport] = useState(null);
 
   if (report) {
     return (

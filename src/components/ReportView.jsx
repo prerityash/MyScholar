@@ -1,13 +1,6 @@
 "use client";
 
-import { VerificationReport, RedFlag, RedFlagCategory } from "@/lib/types";
-
-interface Props {
-  report: VerificationReport;
-  onReset?: () => void;
-}
-
-const CATEGORY_LABELS: Record<RedFlagCategory, string> = {
+const CATEGORY_LABELS = {
   misleading_domain: "Misleading Domain",
   payment_demand: "Payment Demands",
   fake_organization: "Fake Organization",
@@ -18,21 +11,21 @@ const CATEGORY_LABELS: Record<RedFlagCategory, string> = {
   unrealistic_promise: "Unrealistic Promises",
 };
 
-const SEVERITY_COLORS: Record<RedFlag["severity"], string> = {
+const SEVERITY_COLORS = {
   critical: "var(--accent-red)",
   high: "var(--accent-orange)",
   medium: "var(--accent-yellow)",
   low: "var(--accent-blue)",
 };
 
-const RISK_COLORS: Record<VerificationReport["riskLevel"], string> = {
+const RISK_COLORS = {
   safe: "var(--accent-green)",
   caution: "var(--accent-yellow)",
   suspicious: "var(--accent-orange)",
   dangerous: "var(--accent-red)",
 };
 
-function ScoreCircle({ score, level }: { score: number; level: VerificationReport["riskLevel"] }) {
+function ScoreCircle({ score, level }) {
   const color = RISK_COLORS[level];
   return (
     <div
@@ -45,12 +38,12 @@ function ScoreCircle({ score, level }: { score: number; level: VerificationRepor
   );
 }
 
-function RiskBadge({ level }: { level: VerificationReport["riskLevel"] }) {
+function RiskBadge({ level }) {
   const labels = { safe: "✓ Safe", caution: "⚠ Caution", suspicious: "⚠ Suspicious", dangerous: "✕ Dangerous" };
   return <span className={`badge badge-${level}`}>{labels[level]}</span>;
 }
 
-function RiskMeter({ score, level }: { score: number; level: VerificationReport["riskLevel"] }) {
+function RiskMeter({ score, level }) {
   return (
     <div className="risk-meter">
       <div
@@ -64,7 +57,7 @@ function RiskMeter({ score, level }: { score: number; level: VerificationReport[
   );
 }
 
-export default function ReportView({ report, onReset }: Props) {
+export default function ReportView({ report, onReset }) {
   const sortedFlags = [...report.redFlags].sort((a, b) => {
     const order = { critical: 0, high: 1, medium: 2, low: 3 };
     return order[a.severity] - order[b.severity];
@@ -98,7 +91,7 @@ export default function ReportView({ report, onReset }: Props) {
       {/* Category Breakdown */}
       <div className="card" style={{ marginTop: 16 }}>
         <h3 style={{ marginTop: 0, marginBottom: 16 }}>📊 Category Breakdown</h3>
-        {(Object.entries(report.categoryScores) as [RedFlagCategory, number][])
+        {Object.entries(report.categoryScores)
           .filter(([, score]) => score > 0)
           .sort(([, a], [, b]) => b - a)
           .map(([cat, score]) => (

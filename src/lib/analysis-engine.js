@@ -1,5 +1,5 @@
 // ============================================================
-// Scholarship Verification – Analysis Engine
+// Scholarship Verification – Analysis Engine (JavaScript)
 // ============================================================
 // Context-aware heuristic engine that evaluates scholarship
 // listings for common scam patterns while distinguishing legitimate
@@ -7,27 +7,12 @@
 // payment demands and data harvesting.
 // ============================================================
 
-import {
-  RedFlag,
-  RedFlagCategory,
-  ScholarshipInput,
-  VerificationReport,
-} from "./types";
-
-// ── helpers ──────────────────────────────────────────────────
-
 let flagCounter = 0;
 function nextId() {
   return `flag-${++flagCounter}-${Date.now()}`;
 }
 
-function flag(
-  category: RedFlagCategory,
-  severity: RedFlag["severity"],
-  title: string,
-  description: string,
-  evidence: string
-): RedFlag {
+function flag(category, severity, title, description, evidence) {
   return { id: nextId(), category, severity, title, description, evidence };
 }
 
@@ -49,8 +34,8 @@ const TYPOSQUAT_TARGETS = [
   "finaid", "unigo", "cappex", "chegg", "niche", "nspgov",
 ];
 
-function analyzeDomain(url: string): RedFlag[] {
-  const flags: RedFlag[] = [];
+function analyzeDomain(url) {
+  const flags = [];
   if (!url) return flags;
 
   let hostname = "";
@@ -128,7 +113,6 @@ function analyzeDomain(url: string): RedFlag[] {
 
 // ── 2. Payment / Fee Detection (with Disbursement Context Awareness) ──
 
-// Actual payment/fee demands made TO the applicant
 const EXPLICIT_FEE_PATTERNS = [
   /\bapplication\s+fee\b/i,
   /\bprocessing\s+fee\b/i,
@@ -149,11 +133,7 @@ const EXPLICIT_FEE_PATTERNS = [
   /\btransfer\s+(?:fee|charge|advance\s+payment)\b/i,
 ];
 
-/**
- * Checks if the mention of bank details is in the legitimate context of
- * receiving/crediting the scholarship award (Direct Benefit Transfer, disbursement, etc.)
- */
-function isDisbursementContext(corpus: string): boolean {
+function isDisbursementContext(corpus) {
   const disbursementIndicators = [
     /bank\s+details?\s*(?:to|for)\s*(?:credit|transfer|receive|disbursement|direct\s+benefit\s+transfer|dbt|direct\s+deposit)/i,
     /(?:transfer|disburse|credit|deposit)\s+(?:the\s+)?(?:scholarship|amount|funds?|award|stipend)\s*(?:to|into|through)\s*(?:the\s+)?(?:student'?s?|applicant'?s?|your)?\s*bank\s*account/i,
@@ -172,9 +152,9 @@ function isDisbursementContext(corpus: string): boolean {
   return disbursementIndicators.some((regex) => regex.test(corpus));
 }
 
-function analyzePayment(input: ScholarshipInput): RedFlag[] {
-  const flags: RedFlag[] = [];
-  const corpus = `${input.description} ${input.applicationProcess} ${input.eligibility}`.toLowerCase();
+function analyzePayment(input) {
+  const flags = [];
+  const corpus = `${input.description || ""} ${input.applicationProcess || ""} ${input.eligibility || ""}`.toLowerCase();
 
   for (const pattern of EXPLICIT_FEE_PATTERNS) {
     const match = corpus.match(pattern);
@@ -194,13 +174,11 @@ function analyzePayment(input: ScholarshipInput): RedFlag[] {
 // ── 3. Fake Organization Detection ──────────────────────────
 
 const KNOWN_LEGITIMATE_ORGS = [
-  // Global & US
   "national merit scholarship", "gates millennium", "fulbright",
   "rhodes scholarship", "pell grant", "national science foundation",
   "jack kent cooke", "coca-cola scholars", "elks national foundation",
   "rotary foundation", "united negro college fund", "chevening",
   "daad", "erasmus", "commonwealth scholarship",
-  // Indian Central & State Government Portals / Schemes
   "national scholarship portal", "nsp", "pm-usp", "central sector scheme",
   "ministry of education", "department of higher education",
   "university grants commission", "ugc", "aicte",
@@ -220,14 +198,13 @@ const VAGUE_ORG_SIGNALS = [
   /\b(?:anonymous|unnamed)\s+(?:donor|benefactor)\b/i,
 ];
 
-function analyzeOrganization(input: ScholarshipInput): RedFlag[] {
-  const flags: RedFlag[] = [];
-  const orgName = input.organizationName.toLowerCase().trim();
-  const corpus = `${input.name} ${input.organizationName} ${input.description} ${input.applicationProcess}`.toLowerCase();
+function analyzeOrganization(input) {
+  const flags = [];
+  const orgName = (input.organizationName || "").toLowerCase().trim();
+  const corpus = `${input.name || ""} ${input.organizationName || ""} ${input.description || ""} ${input.applicationProcess || ""}`.toLowerCase();
 
   const isRecognizedLegitimate = KNOWN_LEGITIMATE_ORGS.some((o) => corpus.includes(o));
 
-  // Check if org name sounds suspiciously generic/official but is unrecognized
   if (orgName.length > 0 && !isRecognizedLegitimate) {
     for (const pattern of FAKE_ORG_PATTERNS) {
       if (pattern.test(orgName)) {
@@ -241,7 +218,6 @@ function analyzeOrganization(input: ScholarshipInput): RedFlag[] {
     }
   }
 
-  // Vague descriptions (only if not an established recognized scheme)
   if (!isRecognizedLegitimate) {
     for (const pattern of VAGUE_ORG_SIGNALS) {
       const match = corpus.match(pattern);
@@ -256,7 +232,6 @@ function analyzeOrganization(input: ScholarshipInput): RedFlag[] {
     }
   }
 
-  // No organization name provided
   if (!orgName && !isRecognizedLegitimate) {
     flags.push(
       flag("fake_organization", "high", "No organization name provided",
@@ -294,11 +269,10 @@ const PLACEHOLDER_PATTERNS = [
   /\{(?:name|organization|amount|date)\}/i,
 ];
 
-function analyzeContent(input: ScholarshipInput): RedFlag[] {
-  const flags: RedFlag[] = [];
-  const corpus = `${input.description} ${input.applicationProcess} ${input.eligibility}`.toLowerCase();
+function analyzeContent(input) {
+  const flags = [];
+  const corpus = `${input.description || ""} ${input.applicationProcess || ""} ${input.eligibility || ""}`.toLowerCase();
 
-  // Generic scam phrases
   for (const phrase of GENERIC_PHRASES) {
     if (corpus.includes(phrase)) {
       flags.push(
@@ -309,7 +283,6 @@ function analyzeContent(input: ScholarshipInput): RedFlag[] {
     }
   }
 
-  // Placeholder text
   for (const pattern of PLACEHOLDER_PATTERNS) {
     const match = corpus.match(pattern);
     if (match) {
@@ -322,12 +295,12 @@ function analyzeContent(input: ScholarshipInput): RedFlag[] {
     }
   }
 
-  // Very short description (< 50 chars)
-  if (input.description.trim().length > 0 && input.description.trim().length < 50) {
+  const descTrim = (input.description || "").trim();
+  if (descTrim.length > 0 && descTrim.length < 50) {
     flags.push(
       flag("copied_content", "medium", "Extremely short description",
         "The scholarship description is unusually brief, which is atypical of thorough educational programs.",
-        `Description length: ${input.description.trim().length} characters`)
+        `Description length: ${descTrim.length} characters`)
     );
   }
 
@@ -358,7 +331,6 @@ const PRESSURE_PATTERNS = [
   /\bexclusive\s+(?:cash\s+)?offer\b/i,
 ];
 
-// Truly sensitive credentials that legitimate scholarship portals NEVER ask for
 const MALICIOUS_CREDENTIAL_PATTERNS = [
   /\b(?:bank|net\s*banking|online\s*banking|portal)\s+password\b/i,
   /\b(?:atm|card|transaction)\s+pin\b/i,
@@ -367,18 +339,16 @@ const MALICIOUS_CREDENTIAL_PATTERNS = [
   /\b(?:mother'?s?|father'?s?)\s+maiden\s+name\b/i,
 ];
 
-// Identity documents that warrant scrutiny if on suspicious or unverified portals
 const SENSITIVE_ID_PATTERNS = [
   /\bsocial\s+security\s+(?:number|#|no\.?)\b/i,
   /\bssn\b/i,
 ];
 
-function analyzeLanguage(input: ScholarshipInput): RedFlag[] {
-  const flags: RedFlag[] = [];
-  const corpus = `${input.description} ${input.applicationProcess} ${input.eligibility}`.toLowerCase();
+function analyzeLanguage(input) {
+  const flags = [];
+  const corpus = `${input.description || ""} ${input.applicationProcess || ""} ${input.eligibility || ""}`.toLowerCase();
   const disbursementSafe = isDisbursementContext(corpus);
 
-  // Urgency tactics
   for (const pattern of URGENCY_PATTERNS) {
     const match = corpus.match(pattern);
     if (match) {
@@ -391,7 +361,6 @@ function analyzeLanguage(input: ScholarshipInput): RedFlag[] {
     }
   }
 
-  // Deceptive promises
   for (const pattern of PRESSURE_PATTERNS) {
     const match = corpus.match(pattern);
     if (match) {
@@ -404,7 +373,6 @@ function analyzeLanguage(input: ScholarshipInput): RedFlag[] {
     }
   }
 
-  // Critical credential theft (passwords, PINs, CVV, OTP)
   for (const pattern of MALICIOUS_CREDENTIAL_PATTERNS) {
     const match = corpus.match(pattern);
     if (match) {
@@ -417,7 +385,6 @@ function analyzeLanguage(input: ScholarshipInput): RedFlag[] {
     }
   }
 
-  // Sensitive ID harvesting (e.g. SSN)
   for (const pattern of SENSITIVE_ID_PATTERNS) {
     const match = corpus.match(pattern);
     if (match) {
@@ -430,9 +397,7 @@ function analyzeLanguage(input: ScholarshipInput): RedFlag[] {
     }
   }
 
-  // Check generic "bank account / details" ONLY if NOT in a legitimate disbursement context
   if (!disbursementSafe) {
-    // If someone asks for bank details without any scholarship disbursement context
     const suspiciousBankMatch = corpus.match(/\b(?:provide|enter|submit)\s+(?:your\s+)?bank\s+(?:account|routing|details)\b/i);
     if (suspiciousBankMatch) {
       flags.push(
@@ -443,10 +408,10 @@ function analyzeLanguage(input: ScholarshipInput): RedFlag[] {
     }
   }
 
-  // ALL CAPS text (more than 50% uppercase in long descriptions)
-  const lettersOnly = input.description.replace(/[^A-Za-z]/g, "");
+  const desc = input.description || "";
+  const lettersOnly = desc.replace(/[^A-Za-z]/g, "");
   if (lettersOnly.length > 30) {
-    const capsRatio = input.description.replace(/[^A-Z]/g, "").length / lettersOnly.length;
+    const capsRatio = desc.replace(/[^A-Z]/g, "").length / lettersOnly.length;
     if (capsRatio > 0.5) {
       flags.push(
         flag("suspicious_language", "medium", "Excessive capitalization",
@@ -456,8 +421,7 @@ function analyzeLanguage(input: ScholarshipInput): RedFlag[] {
     }
   }
 
-  // Exclamation marks
-  const exclamationCount = (input.description.match(/!/g) || []).length;
+  const exclamationCount = (desc.match(/!/g) || []).length;
   if (exclamationCount > 4) {
     flags.push(
       flag("suspicious_language", "low", "Excessive exclamation marks",
@@ -471,13 +435,13 @@ function analyzeLanguage(input: ScholarshipInput): RedFlag[] {
 
 // ── 6. Unrealistic Promises ─────────────────────────────────
 
-function analyzeAmount(input: ScholarshipInput): RedFlag[] {
-  const flags: RedFlag[] = [];
-  const amountStr = input.amount.replace(/[$,₹]/g, "").trim();
+function analyzeAmount(input) {
+  const flags = [];
+  const amountStr = (input.amount || "").replace(/[$,₹]/g, "").trim();
   const amount = parseFloat(amountStr);
 
   if (!isNaN(amount)) {
-    if (amount > 200_000) {
+    if (amount > 200000) {
       flags.push(
         flag("unrealistic_promise", "high", "Unusually large scholarship amount",
           "While some international fellowships award large stipends, excessive lump sums from unknown organizations warrant extra scrutiny.",
@@ -486,8 +450,7 @@ function analyzeAmount(input: ScholarshipInput): RedFlag[] {
     }
   }
 
-  // "Unlimited" or extreme claims
-  const corpus = `${input.description} ${input.amount}`.toLowerCase();
+  const corpus = `${input.description || ""} ${input.amount || ""}`.toLowerCase();
   if (/\bunlimited\s+(?:funds?|money|grants?)\b/i.test(corpus) || /\bmillions?\s+in\s+cash\b/i.test(corpus)) {
     flags.push(
       flag("unrealistic_promise", "critical", "Unrealistic financial claims",
@@ -501,13 +464,11 @@ function analyzeAmount(input: ScholarshipInput): RedFlag[] {
 
 // ── 7. Email Analysis ───────────────────────────────────────
 
-function analyzeEmail(email: string): RedFlag[] {
-  const flags: RedFlag[] = [];
+function analyzeEmail(email) {
+  const flags = [];
   if (!email) return flags;
 
   const lowerEmail = email.toLowerCase().trim();
-
-  // Free email provider
   const freeProviders = [
     "gmail.com", "yahoo.com", "hotmail.com", "outlook.com",
     "aol.com", "mail.com", "protonmail.com", "yandex.com",
@@ -522,7 +483,6 @@ function analyzeEmail(email: string): RedFlag[] {
     );
   }
 
-  // Suspicious randomized numeric address
   if (/\d{4,}/.test(lowerEmail.split("@")[0])) {
     flags.push(
       flag("fake_organization", "low", "Randomized numeric email handle",
@@ -536,24 +496,21 @@ function analyzeEmail(email: string): RedFlag[] {
 
 // ── Scoring & Report Assembly ───────────────────────────────
 
-const SEVERITY_WEIGHTS: Record<RedFlag["severity"], number> = {
+const SEVERITY_WEIGHTS = {
   critical: 25,
   high: 15,
   medium: 8,
   low: 3,
 };
 
-function computeRiskLevel(score: number): VerificationReport["riskLevel"] {
+function computeRiskLevel(score) {
   if (score <= 15) return "safe";
   if (score <= 40) return "caution";
   if (score <= 70) return "suspicious";
   return "dangerous";
 }
 
-function buildSummary(
-  level: VerificationReport["riskLevel"],
-  flags: RedFlag[]
-): string {
+function buildSummary(level, flags) {
   const counts = { critical: 0, high: 0, medium: 0, low: 0 };
   flags.forEach((f) => counts[f.severity]++);
 
@@ -569,11 +526,8 @@ function buildSummary(
   }
 }
 
-function buildRecommendations(
-  level: VerificationReport["riskLevel"],
-  flags: RedFlag[]
-): string[] {
-  const recs: string[] = [];
+function buildRecommendations(level, flags) {
+  const recs = [];
   const categories = new Set(flags.map((f) => f.category));
 
   if (categories.has("payment_demand")) {
@@ -603,11 +557,10 @@ function buildRecommendations(
 
 // ── Public API ──────────────────────────────────────────────
 
-export function analyzeScholarship(input: ScholarshipInput): VerificationReport {
+export function analyzeScholarship(input) {
   flagCounter = 0;
 
-  // Run all analysis modules
-  const allFlags: RedFlag[] = [
+  const allFlags = [
     ...analyzeDomain(input.url),
     ...analyzePayment(input),
     ...analyzeOrganization(input),
@@ -617,8 +570,7 @@ export function analyzeScholarship(input: ScholarshipInput): VerificationReport 
     ...analyzeEmail(input.contactEmail),
   ];
 
-  // Compute per-category scores
-  const categoryScores: Record<RedFlagCategory, number> = {
+  const categoryScores = {
     misleading_domain: 0,
     payment_demand: 0,
     fake_organization: 0,
@@ -630,10 +582,9 @@ export function analyzeScholarship(input: ScholarshipInput): VerificationReport 
   };
 
   for (const f of allFlags) {
-    categoryScores[f.category] += SEVERITY_WEIGHTS[f.severity];
+    categoryScores[f.category] = (categoryScores[f.category] || 0) + SEVERITY_WEIGHTS[f.severity];
   }
 
-  // Overall risk score (capped at 100)
   const rawScore = allFlags.reduce((sum, f) => sum + SEVERITY_WEIGHTS[f.severity], 0);
   const overallRiskScore = Math.min(100, rawScore);
   const riskLevel = computeRiskLevel(overallRiskScore);

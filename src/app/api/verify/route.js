@@ -1,14 +1,12 @@
-// POST /api/verify – Analyze a scholarship listing
-import { NextRequest, NextResponse } from "next/server";
+// POST /api/verify – Analyze a scholarship listing (JavaScript)
+import { NextResponse } from "next/server";
 import { analyzeScholarship } from "@/lib/analysis-engine";
-import { ScholarshipInput } from "@/lib/types";
 
-export async function POST(request: NextRequest) {
+export async function POST(request) {
   try {
-    const body = (await request.json()) as ScholarshipInput;
+    const body = await request.json();
 
-    // Basic validation
-    if (!body.name?.trim()) {
+    if (!body?.name?.trim()) {
       return NextResponse.json(
         { error: "Scholarship name is required" },
         { status: 400 }
@@ -16,7 +14,6 @@ export async function POST(request: NextRequest) {
     }
 
     const report = analyzeScholarship(body);
-
     return NextResponse.json(report);
   } catch (err) {
     console.error("Verification error:", err);

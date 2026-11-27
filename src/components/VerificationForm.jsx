@@ -1,13 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ScholarshipInput, VerificationReport } from "@/lib/types";
 
-interface Props {
-  onResult: (report: VerificationReport) => void;
-}
-
-const INITIAL: ScholarshipInput = {
+const INITIAL = {
   name: "",
   url: "",
   organizationName: "",
@@ -19,7 +14,7 @@ const INITIAL: ScholarshipInput = {
   applicationProcess: "",
 };
 
-const SAMPLE_PRESETS: { label: string; tag: string; data: ScholarshipInput }[] = [
+const SAMPLE_PRESETS = [
   {
     label: "🇮🇳 PM-USP Central Sector Scheme (NSP)",
     tag: "Legitimate (DBT)",
@@ -87,20 +82,20 @@ const SAMPLE_PRESETS: { label: string; tag: string; data: ScholarshipInput }[] =
   },
 ];
 
-export default function VerificationForm({ onResult }: Props) {
-  const [form, setForm] = useState<ScholarshipInput>(INITIAL);
+export default function VerificationForm({ onResult }) {
+  const [form, setForm] = useState(INITIAL);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const update = (field: keyof ScholarshipInput, value: string) =>
+  const update = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const loadPreset = (data: ScholarshipInput) => {
+  const loadPreset = (data) => {
     setForm(data);
     setError("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -117,7 +112,7 @@ export default function VerificationForm({ onResult }: Props) {
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error("Verification failed");
-      const report: VerificationReport = await res.json();
+      const report = await res.json();
       onResult(report);
     } catch {
       setError("Something went wrong. Please try again.");

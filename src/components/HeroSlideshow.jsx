@@ -27,7 +27,7 @@ export default function HeroSlideshow() {
     return () => clearInterval(timer);
   }, []);
 
-  const goTo = (index: number) => {
+  const goTo = (index) => {
     setCurrent(index);
   };
 
