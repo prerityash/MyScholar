@@ -503,6 +503,49 @@ const SEVERITY_WEIGHTS = {
   low: 3,
 };
 
+const CATEGORY_DETAILS = {
+  payment_demand: {
+    label: "Payment & Fee Demands",
+    findingTitle: "Portal is demanding fee or upfront payment",
+    description: "The listing asks for an upfront application fee, processing fee, wire transfer, or cryptocurrency. Authentic scholarships never charge applicants.",
+  },
+  misleading_domain: {
+    label: "Suspicious Domain & Hosting",
+    findingTitle: "Website is using a suspicious or unverified web domain",
+    description: "The portal is hosted on an untrusted TLD (.buzz, .xyz, .top), raw IP address, or mimics an official educational board.",
+  },
+  data_harvesting: {
+    label: "Sensitive Credential Harvesting",
+    findingTitle: "Portal is requesting sensitive personal credentials",
+    description: "The application requests private identity or banking credentials (e.g. Social Security Number, ATM PIN, CVV, or passwords) rather than standard disbursement details.",
+  },
+  fake_organization: {
+    label: "Fake or Unverified Organization",
+    findingTitle: "Sponsoring organization appears fake or uses webmail",
+    description: "The sponsoring entity lacks official registration or uses free webmail (Gmail/Yahoo) instead of an institutional domain.",
+  },
+  urgency_pressure: {
+    label: "Artificial Urgency & Pressure",
+    findingTitle: "Listing uses artificial urgency and countdown pressure",
+    description: "Employs aggressive deadlines ('act tonight', 'immediate approval', 'slots running out') designed to rush students past due diligence.",
+  },
+  unrealistic_promise: {
+    label: "Unrealistic Guarantees & Lottery Claims",
+    findingTitle: "Portal promises guaranteed approval or free cash grants",
+    description: "Claims 100% guaranteed funding or no qualification criteria, typical of fraudulent lottery and grant schemes.",
+  },
+  copied_content: {
+    label: "Duplicated Scam Template Content",
+    findingTitle: "Listing contains generic boilerplate scam text",
+    description: "Matches copied phrases and templates frequently circulated across mass phishing operations.",
+  },
+  suspicious_language: {
+    label: "Suspicious & Manipulative Language",
+    findingTitle: "Listing uses manipulative or sensational phrasing",
+    description: "Contains all-caps urgency, excessive excitement markers, or grammatically inconsistent claims.",
+  },
+};
+
 /**
  * Computes risk / trust level based on score out of 100 (where 100 is cleanest).
  */
@@ -521,12 +564,125 @@ function buildSummary(level, flags, score) {
     case "safe":
       return `Trust Score: ${score}/100. This scholarship listing appears legitimate. No significant red flags or predatory patterns were detected. Applicants should always confirm details on the official awarding portal.`;
     case "caution":
-      return `Trust Score: ${score}/100. Minor concerns detected (${flags.length} flag${flags.length > 1 ? "s" : ""}). The listing may be genuine but has deductions for non-standard elements (such as third-party hosting or webmail contact) worth reviewing.`;
+      return `Trust Score: ${score}/100. Minor concerns detected (${flags.length} flag${flags.length > 1 ? "s" : ""}). The listing may be genuine but has non-standard elements (such as third-party hosting or webmail contact) worth reviewing.`;
     case "suspicious":
-      return `Trust Score: ${score}/100. Multiple fraud indicators detected (${flags.length} red flags, ${counts.critical + counts.high} high/critical). Substantial points were deducted due to suspicious domain, language, or vague credentials. Exercise heightened caution.`;
+      return `Trust Score: ${score}/100. Multiple fraud indicators detected (${flags.length} red flags, ${counts.critical + counts.high} high/critical). Substantial risks were identified in domain, language, or vague credentials. Exercise heightened caution.`;
     case "dangerous":
-      return `Trust Score: ${score}/100 (HIGH RISK). Severe fraud detected (${flags.length} red flags, ${counts.critical} critical). Critical scam indicators such as advance-fee demands, credential harvesting, or predatory guarantees caused heavy point deductions. Do NOT send money or account passwords.`;
+      return `Trust Score: ${score}/100 (HIGH RISK). Severe fraud detected (${flags.length} red flags, ${counts.critical} critical). Critical scam indicators such as advance-fee demands, credential harvesting, or predatory guarantees were identified. Do NOT send money or account passwords.`;
   }
+}
+
+function buildFindings(flags, level) {
+  if (flags.length === 0) {
+    return [
+      {
+        id: "clean-domain",
+        category: "misleading_domain",
+        severity: "safe",
+        title: "Official Institutional Domain",
+        description: "The scholarship is hosted on a verified official government or educational domain (.gov, .gov.in, .edu, .ac.in).",
+      },
+      {
+        id: "clean-fee",
+        category: "payment_demand",
+        severity: "safe",
+        title: "Zero Upfront Fees Required",
+        description: "Application is 100% free with no hidden processing, handling, or registration fee demands.",
+      },
+      {
+        id: "clean-disbursement",
+        category: "data_harvesting",
+        severity: "safe",
+        title: "Legitimate Disbursement Context",
+        description: "Banking details are requested strictly for Direct Benefit Transfer (DBT) disbursement, with zero credential harvesting.",
+      },
+    ];
+  }
+
+  const categoryMap = new Map();
+  for (const f of flags) {
+    if (!categoryMap.has(f.category)) {
+      categoryMap.set(f.category, []);
+    }
+    categoryMap.get(f.category).push(f);
+  }
+
+  const findings = [];
+  const severityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+
+  for (const [cat, catFlags] of categoryMap.entries()) {
+    catFlags.sort((a, b) => severityOrder[b.severity] - severityOrder[a.severity]);
+    const topFlag = catFlags[0];
+    const meta = CATEGORY_DETAILS[cat];
+
+    findings.push({
+      id: `finding-${cat}`,
+      category: cat,
+      severity: topFlag.severity,
+      title: meta ? meta.findingTitle : topFlag.title,
+      description: topFlag.description || (meta ? meta.description : ""),
+      flagCount: catFlags.length,
+      evidence: catFlags.map((f) => f.evidence).filter(Boolean).slice(0, 2).join(" · "),
+    });
+  }
+
+  findings.sort((a, b) => severityOrder[b.severity] - severityOrder[a.severity]);
+  return findings;
+}
+
+function buildCategoryPanels(flags) {
+  const categoryMap = new Map();
+  for (const f of flags) {
+    if (!categoryMap.has(f.category)) {
+      categoryMap.set(f.category, []);
+    }
+    categoryMap.get(f.category).push(f);
+  }
+
+  const severityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+  const categories = Object.keys(CATEGORY_DETAILS);
+
+  return categories.map((catKey) => {
+    const meta = CATEGORY_DETAILS[catKey];
+    const catFlags = categoryMap.get(catKey) || [];
+
+    if (catFlags.length === 0) {
+      return {
+        key: catKey,
+        label: meta.label,
+        status: "Clean",
+        severity: "safe",
+        barWidth: 8,
+        description: "No threats or red flags detected.",
+      };
+    }
+
+    catFlags.sort((a, b) => severityOrder[b.severity] - severityOrder[a.severity]);
+    const topSeverity = catFlags[0].severity;
+
+    let barWidth = 100;
+    let status = "Critical Alert";
+    if (topSeverity === "high") {
+      barWidth = 75;
+      status = "High Risk";
+    } else if (topSeverity === "medium") {
+      barWidth = 50;
+      status = "Warning";
+    } else if (topSeverity === "low") {
+      barWidth = 30;
+      status = "Minor Concern";
+    }
+
+    return {
+      key: catKey,
+      label: meta.label,
+      status,
+      severity: topSeverity,
+      barWidth,
+      description: catFlags[0].title,
+      flagCount: catFlags.length,
+    };
+  });
 }
 
 function buildRecommendations(level, flags) {
@@ -603,6 +759,8 @@ export function analyzeScholarship(input) {
     redFlags: allFlags,
     categoryScores,
     summary: buildSummary(riskLevel, allFlags, overallRiskScore),
+    findings: buildFindings(allFlags, riskLevel),
+    categoryPanels: buildCategoryPanels(allFlags),
     recommendations: buildRecommendations(riskLevel, allFlags),
     verifiedAt: new Date().toISOString(),
   };
