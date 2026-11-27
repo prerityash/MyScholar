@@ -12,7 +12,7 @@
 - **🏛️ Organization Verification**: Catches fictitious and vague sponsoring entities, cross-references legitimate national and international scholarship boards (such as India's National Scholarship Portal / PM-USP and global fellowships like Fulbright, NSF, DAAD, Chevening), and flags suspicious webmail contacts (e.g., Gmail/Yahoo used for official schemes).
 - **📋 Copied Content & Template Detection**: Flags boilerplate scam templates, generic guarantees (*"100% guaranteed"*, *"you are a winner"*), and unedited placeholder texts.
 - **🔒 Context-Aware Data Harvesting Defense**: Distinguishes authentic bank account details needed for **Direct Benefit Transfer (DBT)** or direct deposit disbursement from dangerous credential theft (passwords, ATM PINs, CVVs, and OTPs).
-- **📊 Real-time Scoring & Dashboards**: Generates instant 0–100 risk scores, severity-coded red flag breakdowns, FTC/cybercrime safety recommendations, and visual analytics dashboards.
+- **📊 Real-time Scoring & Risk Reports**: Generates instant 0–100 risk scores, severity-coded red flag breakdowns, and official safety recommendations.
 
 ---
 
@@ -53,12 +53,8 @@ MyScholar/
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── verify/route.ts       # POST: Real-time scholarship analysis
-│   │   │   ├── reports/route.ts      # GET: Historical verified listings
-│   │   │   └── dashboard/route.ts    # GET: Aggregate risk metrics
+│   │   │   └── verify/route.ts       # POST: Real-time scholarship analysis
 │   │   ├── verify/page.tsx           # Verification submission tool with presets
-│   │   ├── reports/page.tsx          # Reports archive & review
-│   │   ├── dashboard/page.tsx        # Visual analytics dashboard
 │   │   ├── layout.tsx                # Global layout with navigation
 │   │   └── page.tsx                  # Landing page & features overview
 │   ├── components/
@@ -67,7 +63,6 @@ MyScholar/
 │   │   └── ReportView.tsx            # Visual risk meter & categorized flags
 │   └── lib/
 │       ├── analysis-engine.ts        # Core heuristic verification engine
-│       ├── database.ts               # In-memory storage & seed listings
 │       └── types.ts                  # Type definitions & schemas
 ├── next.config.ts
 ├── package.json

@@ -1,7 +1,6 @@
 // POST /api/verify – Analyze a scholarship listing
 import { NextRequest, NextResponse } from "next/server";
 import { analyzeScholarship } from "@/lib/analysis-engine";
-import { saveReport } from "@/lib/database";
 import { ScholarshipInput } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
@@ -17,7 +16,6 @@ export async function POST(request: NextRequest) {
     }
 
     const report = analyzeScholarship(body);
-    saveReport(report);
 
     return NextResponse.json(report);
   } catch (err) {

@@ -47,22 +47,3 @@ export interface VerificationReport {
   recommendations: string[];
   verifiedAt: string;                // ISO date-time
 }
-
-/** Shape for the scholarship database entries. */
-export interface ScholarshipRecord {
-  id: string;
-  input: ScholarshipInput;
-  report: VerificationReport;
-  createdAt: string;
-}
-
-/** Dashboard statistics. */
-export interface DashboardStats {
-  totalAnalyzed: number;
-  safe: number;
-  caution: number;
-  suspicious: number;
-  dangerous: number;
-  recentReports: VerificationReport[];
-  topRedFlags: { category: RedFlagCategory; count: number }[];
-}

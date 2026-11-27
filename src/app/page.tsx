@@ -18,9 +18,6 @@ export default function Home() {
           <Link href="/verify" className="btn btn-primary">
             🔍 Verify a Scholarship
           </Link>
-          <Link href="/dashboard" className="btn btn-ghost">
-            📊 View Dashboard
-          </Link>
         </div>
       </section>
 
@@ -93,9 +90,9 @@ export default function Home() {
             </div>
             <div className="feature-title">Data Harvesting Detection</div>
             <div className="feature-desc">
-              Alerts you when applications request SSNs, bank details,
-              passwords, or other sensitive information that legitimate
-              scholarships never require upfront.
+              Alerts you when applications request sensitive credentials like
+              passwords, ATM PINs, CVVs, or OTPs, while recognizing legitimate
+              bank account details for direct deposit.
             </div>
           </div>
         </div>
