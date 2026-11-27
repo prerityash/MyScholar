@@ -1,11 +1,23 @@
 "use client";
 
+import { useState } from "react";
+
+const CATEGORY_LABELS = {
+  misleading_domain: "Misleading Domain",
+  payment_demand: "Payment Demands",
+  fake_organization: "Fake Organization",
+  copied_content: "Copied Content",
+  suspicious_language: "Suspicious Language",
+  urgency_pressure: "Urgency / Pressure",
+  data_harvesting: "Data Harvesting",
+  unrealistic_promise: "Unrealistic Promises",
+};
+
 const SEVERITY_COLORS = {
   critical: "var(--accent-red)",
   high: "var(--accent-orange)",
   medium: "var(--accent-yellow)",
   low: "var(--accent-blue)",
-  safe: "var(--accent-green)",
 };
 
 const RISK_COLORS = {
@@ -59,17 +71,18 @@ function RiskMeter({ score, level }) {
 }
 
 export default function ReportView({ report, onReset }) {
-  const sortedFlags = [...(report.redFlags || [])].sort((a, b) => {
+  const [showRedFlags, setShowRedFlags] = useState(false);
+
+  const sortedFlags = [...report.redFlags].sort((a, b) => {
     const order = { critical: 0, high: 1, medium: 2, low: 3 };
     return order[a.severity] - order[b.severity];
   });
 
-  const findings = report.findings || [];
-  const categoryPanels = report.categoryPanels || [];
+  const maxCatScore = Math.max(...Object.values(report.categoryScores), 1);
 
   return (
     <div>
-      {/* Header Card */}
+      {/* Header */}
       <div className="report-header">
         <div>
           <h2 style={{ margin: "0 0 8px", fontSize: "1.5rem" }}>
@@ -82,105 +95,114 @@ export default function ReportView({ report, onReset }) {
 
       <RiskMeter score={report.overallRiskScore} level={report.riskLevel} />
 
-      {/* Structured Summary & Findings */}
+      {/* Summary */}
       <div className="card" style={{ marginTop: 24 }}>
-        <h3 style={{ marginTop: 0, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-          📋 Analysis Summary & Key Findings
-        </h3>
-        <p style={{ color: "var(--text-secondary)", lineHeight: 1.6, margin: "0 0 16px" }}>
+        <h3 style={{ marginTop: 0, marginBottom: 8 }}>📋 Summary</h3>
+        <p style={{ color: "var(--text-secondary)", lineHeight: 1.6, margin: 0 }}>
           {report.summary}
         </p>
-
-        {/* Structured Findings List */}
-        <div style={{ marginTop: 12 }}>
-          {findings.map((finding) => (
-            <div
-              key={finding.id}
-              className={`finding-card severity-${finding.severity}`}
-            >
-              <span className="finding-icon">
-                {finding.severity === "critical"
-                  ? "🚨"
-                  : finding.severity === "high"
-                    ? "⚠️"
-                    : finding.severity === "medium"
-                      ? "⚡"
-                      : finding.severity === "safe"
-                        ? "✅"
-                        : "ℹ️"}
-              </span>
-              <div className="finding-content">
-                <div className="finding-title">{finding.title}</div>
-                <p className="finding-desc">{finding.description}</p>
-                {finding.evidence && (
-                  <div className="finding-evidence">
-                    Matched text: &ldquo;{finding.evidence}&rdquo;
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
-      {/* Threat Assessment Breakdown (Panels & Bars Without Point Deductions) */}
+      {/* Category Analysis (Visual graph only, no pts text) */}
       <div className="card" style={{ marginTop: 16 }}>
-        <div style={{ marginBottom: 16 }}>
-          <h3 style={{ margin: "0 0 4px" }}>🛡️ Threat Assessment by Category</h3>
-          <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--text-muted)" }}>
-            Severity bars across evaluated scholarship verification vectors:
-          </p>
-        </div>
+        <h3 style={{ marginTop: 0, marginBottom: 16 }}>📊 Category Analysis</h3>
 
-        <div className="threat-panel-grid">
-          {categoryPanels.map((item) => (
-            <div key={item.key} className="threat-row">
-              <div className="threat-row-header">
-                <span className="threat-row-label">{item.label}</span>
-                <span className={`threat-badge ${item.severity}`}>
-                  {item.status}
-                </span>
-              </div>
-
-              {/* Progress bar representing threat level */}
-              <div className="threat-bar-track">
+        {Object.entries(report.categoryScores)
+          .filter(([, score]) => score > 0)
+          .sort(([, a], [, b]) => b - a)
+          .map(([cat, score]) => (
+            <div key={cat} className="category-bar">
+              <span className="category-label">{CATEGORY_LABELS[cat]}</span>
+              <div className="category-track">
                 <div
-                  className="threat-bar-fill"
+                  className="category-fill"
                   style={{
-                    width: `${item.barWidth}%`,
-                    background: SEVERITY_COLORS[item.severity],
+                    width: `${(score / maxCatScore) * 100}%`,
+                    background:
+                      score > 20
+                        ? "var(--accent-red)"
+                        : score > 10
+                          ? "var(--accent-orange)"
+                          : score > 5
+                            ? "var(--accent-yellow)"
+                            : "var(--accent-blue)",
                   }}
                 />
               </div>
-
-              <div className="threat-desc">{item.description}</div>
             </div>
           ))}
-        </div>
+
+        {Object.values(report.categoryScores).every((s) => s === 0) && (
+          <p style={{ color: "var(--text-muted)", margin: 0 }}>
+            No anomalies detected across analyzed categories.
+          </p>
+        )}
       </div>
 
-      {/* Detailed Red Flag Items */}
-      <div style={{ marginTop: 16 }}>
-        <h3 style={{ marginBottom: 16 }}>
-          🚩 Detected Red Flags ({sortedFlags.length})
-        </h3>
-        {sortedFlags.length === 0 ? (
-          <div className="card">
-            <p style={{ color: "var(--text-muted)", margin: 0, textAlign: "center" }}>
-              ✅ No red flags detected across all categories
-            </p>
+      {/* Detailed Red Flags Collapsible Panel */}
+      <div className="card" style={{ marginTop: 16 }}>
+        <button
+          type="button"
+          onClick={() => setShowRedFlags((prev) => !prev)}
+          style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            background: "transparent",
+            border: "none",
+            color: "inherit",
+            cursor: "pointer",
+            padding: 0,
+            textAlign: "left",
+          }}
+          aria-expanded={showRedFlags}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <h3 style={{ margin: 0, fontSize: "1.125rem" }}>
+              🚩 Detailed Red Flags ({report.redFlags.length})
+            </h3>
+            {report.redFlags.length > 0 && (
+              <span
+                style={{
+                  fontSize: "0.75rem",
+                  background: "rgba(239, 68, 68, 0.15)",
+                  color: "var(--accent-red)",
+                  padding: "2px 8px",
+                  borderRadius: "999px",
+                  fontWeight: 600,
+                }}
+              >
+                {report.redFlags.length} detected
+              </span>
+            )}
           </div>
-        ) : (
-          sortedFlags.map((f) => (
-            <div key={f.id} className={`flag-card severity-${f.severity}`}>
-              <div className="flag-severity" style={{ color: SEVERITY_COLORS[f.severity] }}>
-                {f.severity} alert
+          <span style={{ fontSize: "0.875rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6, fontWeight: 500 }}>
+            {showRedFlags ? "Hide Details ▲" : "Show Details ▼"}
+          </span>
+        </button>
+
+        {showRedFlags && (
+          <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid var(--border-color)" }}>
+            {sortedFlags.length === 0 ? (
+              <p style={{ color: "var(--text-muted)", margin: 0, textAlign: "center" }}>
+                ✅ No red flags detected
+              </p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {sortedFlags.map((f) => (
+                  <div key={f.id} className={`flag-card severity-${f.severity}`}>
+                    <div className="flag-severity" style={{ color: SEVERITY_COLORS[f.severity] }}>
+                      {f.severity}
+                    </div>
+                    <div className="flag-title">{f.title}</div>
+                    <div className="flag-description">{f.description}</div>
+                    <div className="flag-evidence">{f.evidence}</div>
+                  </div>
+                ))}
               </div>
-              <div className="flag-title">{f.title}</div>
-              <div className="flag-description">{f.description}</div>
-              <div className="flag-evidence">{f.evidence}</div>
-            </div>
-          ))
+            )}
+          </div>
         )}
       </div>
 
@@ -188,7 +210,7 @@ export default function ReportView({ report, onReset }) {
       <div className="card" style={{ marginTop: 16 }}>
         <h3 style={{ marginTop: 0, marginBottom: 16 }}>💡 Recommendations</h3>
         <ul className="rec-list">
-          {(report.recommendations || []).map((rec, i) => (
+          {report.recommendations.map((rec, i) => (
             <li key={i} className="rec-item">
               <span className="rec-icon">✓</span>
               {rec}
@@ -197,7 +219,7 @@ export default function ReportView({ report, onReset }) {
         </ul>
       </div>
 
-      {/* Meta Footer */}
+      {/* Meta */}
       <div
         style={{
           marginTop: 24,
