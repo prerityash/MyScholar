@@ -1,3 +1,9 @@
+// ==============================================================================
+// [Unit II: Data Fetching - Client Components ("use client")]
+// [Unit II: Data Fetching - Client-side Fetching with Fetch API]
+// [Unit III: Forms and Server Actions - Form Handling & Validation]
+// ==============================================================================
+
 "use client";
 
 import { useState } from "react";
@@ -95,10 +101,13 @@ export default function VerificationForm({ onResult }) {
     setError("");
   };
 
+  // [Unit II: Data Fetching - Client-side Fetching with Fetch API]
+  // [Unit III: Forms and Server Actions - Form Submission Handler]
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
+    // [Unit III: Form Validation - Client-side checks]
     if (!form.name.trim()) {
       setError("Please enter the scholarship name.");
       return;
@@ -106,11 +115,13 @@ export default function VerificationForm({ onResult }) {
 
     setLoading(true);
     try {
+      // [Unit II: Fetch API - POST request to Route Handler]
       const res = await fetch("/api/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+
       if (!res.ok) throw new Error("Verification failed");
       const report = await res.json();
       onResult(report);

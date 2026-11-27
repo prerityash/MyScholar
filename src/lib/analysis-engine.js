@@ -1,11 +1,12 @@
-// ============================================================
-// Scholarship Verification – Analysis Engine (JavaScript)
-// ============================================================
+// ==============================================================================
+// [Unit IV: Database Integration & Data Validation - Analysis Engine]
+// [Unit III: API Development - Core Processing Logic for Route Handlers]
+// ==============================================================================
 // Context-aware heuristic engine that evaluates scholarship
 // listings for common scam patterns while distinguishing legitimate
 // disbursement requests (e.g., DBT, direct deposit) from fraudulent
 // payment demands and data harvesting.
-// ============================================================
+// ==============================================================================
 
 let flagCounter = 0;
 function nextId() {
