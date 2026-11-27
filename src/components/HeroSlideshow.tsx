@@ -13,7 +13,7 @@ const SLIDES = [
   },
   {
     src: "/slides/slide3.jpg",
-    alt: "Graduates celebrating by tossing graduation caps into the sky",
+    alt: "Scam Alert: That website may look real. But is it? Check the website address before entering details.",
   },
 ];
 
