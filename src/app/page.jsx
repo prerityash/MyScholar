@@ -70,7 +70,7 @@ export default function Home() {
               <div className="stat-number gradient-text">3</div>
               <div className="stat-label">Get Your Safety Report</div>
               <p className="stat-desc">
-                Receive an instant risk score, categorized red flags, matched evidence, and actionable recommendations.
+                Receive an instant trust score starting at 100 (deducting points for detected fraud), itemized red flags, and actionable recommendations.
               </p>
             </div>
           </div>

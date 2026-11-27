@@ -17,7 +17,7 @@
 - **🏛️ Organization Verification**: Catches fictitious and vague sponsoring entities, cross-references legitimate national and international scholarship boards (such as India's National Scholarship Portal / PM-USP and fellowships like Fulbright, NSF, DAAD, Chevening), and flags suspicious webmail contacts (Gmail/Yahoo used for official schemes).
 - **📋 Copied Content & Template Detection**: Flags boilerplate scam templates, generic guarantees (*"100% guaranteed"*, *"you are a winner"*), and unedited placeholder texts.
 - **🔒 Context-Aware Data Harvesting Defense**: Distinguishes authentic bank account details needed for **Direct Benefit Transfer (DBT)** or direct deposit disbursement from dangerous credential theft (passwords, ATM PINs, CVVs, and OTPs).
-- **📊 Real-time Scoring & Risk Reports**: Generates instant 0–100 risk scores, severity-coded red flag breakdowns, category progress bars, and actionable safety recommendations.
+- **📊 Deductive 100-Point Trust Scoring**: Evaluates scholarships starting at a perfect **100/100 base score**, deducting penalties for detected fraud patterns (e.g. advance-fee demands, disposable domains, sensitive data harvesting). Features itemized category deductions and actionable safety advice.
 - **💡 Built-in Sample Presets**: Includes one-click realistic test cases:
   1. 🇮🇳 PM-USP Central Sector Scheme (NSP Legitimate DBT)
   2. 🚨 Phishing & Advance Fee Scam (High Risk)

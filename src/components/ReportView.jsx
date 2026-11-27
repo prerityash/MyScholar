@@ -28,18 +28,28 @@ const RISK_COLORS = {
 function ScoreCircle({ score, level }) {
   const color = RISK_COLORS[level];
   return (
-    <div
-      className="score-circle"
-      style={{ borderColor: color, color }}
-    >
-      {score}
-      <span style={{ fontSize: "0.625rem", fontWeight: 500, opacity: 0.8 }}>/ 100</span>
+    <div style={{ textAlign: "center" }}>
+      <div
+        className="score-circle"
+        style={{ borderColor: color, color }}
+      >
+        {score}
+        <span style={{ fontSize: "0.625rem", fontWeight: 500, opacity: 0.8 }}>/ 100</span>
+      </div>
+      <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--text-muted)", marginTop: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        Trust Score
+      </div>
     </div>
   );
 }
 
 function RiskBadge({ level }) {
-  const labels = { safe: "✓ Safe", caution: "⚠ Caution", suspicious: "⚠ Suspicious", dangerous: "✕ Dangerous" };
+  const labels = {
+    safe: "✓ Legitimate (Safe)",
+    caution: "⚠ Caution (Minor Concerns)",
+    suspicious: "⚠ Suspicious Listing",
+    dangerous: "✕ High Risk Scam",
+  };
   return <span className={`badge badge-${level}`}>{labels[level]}</span>;
 }
 
@@ -49,8 +59,9 @@ function RiskMeter({ score, level }) {
       <div
         className="risk-meter-fill"
         style={{
-          width: `${score}%`,
-          background: `linear-gradient(90deg, ${RISK_COLORS.safe}, ${RISK_COLORS[level]})`,
+          width: `${Math.max(4, score)}%`,
+          background: RISK_COLORS[level],
+          transition: "width 0.8s ease-in-out, background 0.3s ease",
         }}
       />
     </div>
@@ -88,9 +99,21 @@ export default function ReportView({ report, onReset }) {
         </p>
       </div>
 
-      {/* Category Breakdown */}
+      {/* Category Breakdown (Deductions from 100) */}
       <div className="card" style={{ marginTop: 16 }}>
-        <h3 style={{ marginTop: 0, marginBottom: 16 }}>📊 Category Breakdown</h3>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+          <h3 style={{ margin: 0 }}>📊 Deductions from Base Score (100 pts)</h3>
+          {report.deductions > 0 ? (
+            <span style={{ fontSize: "0.8125rem", color: "var(--accent-red)", fontWeight: 600 }}>
+              Total Deducted: -{report.deductions} pts
+            </span>
+          ) : (
+            <span style={{ fontSize: "0.8125rem", color: "var(--accent-green)", fontWeight: 600 }}>
+              Clean: 0 pts deducted
+            </span>
+          )}
+        </div>
+
         {Object.entries(report.categoryScores)
           .filter(([, score]) => score > 0)
           .sort(([, a], [, b]) => b - a)
@@ -112,14 +135,14 @@ export default function ReportView({ report, onReset }) {
                             : "var(--accent-blue)",
                   }}
                 >
-                  {score}
+                  -{score} pts
                 </div>
               </div>
             </div>
           ))}
         {Object.values(report.categoryScores).every((s) => s === 0) && (
           <p style={{ color: "var(--text-muted)", margin: 0 }}>
-            No category scores to display — the listing appears clean.
+            No penalties deducted — the listing appears clean with a perfect 100/100 score.
           </p>
         )}
       </div>
@@ -127,19 +150,19 @@ export default function ReportView({ report, onReset }) {
       {/* Red Flags */}
       <div style={{ marginTop: 16 }}>
         <h3 style={{ marginBottom: 16 }}>
-          🚩 Red Flags ({report.redFlags.length})
+          🚩 Detected Red Flags ({report.redFlags.length})
         </h3>
         {sortedFlags.length === 0 ? (
           <div className="card">
             <p style={{ color: "var(--text-muted)", margin: 0, textAlign: "center" }}>
-              ✅ No red flags detected
+              ✅ No red flags detected — 0 deductions
             </p>
           </div>
         ) : (
           sortedFlags.map((f) => (
             <div key={f.id} className={`flag-card severity-${f.severity}`}>
               <div className="flag-severity" style={{ color: SEVERITY_COLORS[f.severity] }}>
-                {f.severity}
+                {f.severity} penalty
               </div>
               <div className="flag-title">{f.title}</div>
               <div className="flag-description">{f.description}</div>

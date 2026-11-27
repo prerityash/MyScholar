@@ -503,26 +503,29 @@ const SEVERITY_WEIGHTS = {
   low: 3,
 };
 
+/**
+ * Computes risk / trust level based on score out of 100 (where 100 is cleanest).
+ */
 function computeRiskLevel(score) {
-  if (score <= 15) return "safe";
-  if (score <= 40) return "caution";
-  if (score <= 70) return "suspicious";
+  if (score >= 85) return "safe";
+  if (score >= 60) return "caution";
+  if (score >= 35) return "suspicious";
   return "dangerous";
 }
 
-function buildSummary(level, flags) {
+function buildSummary(level, flags, score) {
   const counts = { critical: 0, high: 0, medium: 0, low: 0 };
   flags.forEach((f) => counts[f.severity]++);
 
   switch (level) {
     case "safe":
-      return "This scholarship listing appears legitimate. No significant red flags or predatory patterns were detected. Applicants should always confirm details on the official awarding portal.";
+      return `Trust Score: ${score}/100. This scholarship listing appears legitimate. No significant red flags or predatory patterns were detected. Applicants should always confirm details on the official awarding portal.`;
     case "caution":
-      return `Minor concerns detected (${flags.length} flag${flags.length > 1 ? "s" : ""}). The listing may be genuine but contains elements (such as third-party hosting or webmail contact) worth reviewing with your institution.`;
+      return `Trust Score: ${score}/100. Minor concerns detected (${flags.length} flag${flags.length > 1 ? "s" : ""}). The listing may be genuine but has deductions for non-standard elements (such as third-party hosting or webmail contact) worth reviewing.`;
     case "suspicious":
-      return `Multiple red flags detected (${flags.length} total, including ${counts.critical + counts.high} high/critical). This listing displays known traits of fraudulent or misleading scholarship programs. Exercise heightened caution.`;
+      return `Trust Score: ${score}/100. Multiple fraud indicators detected (${flags.length} red flags, ${counts.critical + counts.high} high/critical). Substantial points were deducted due to suspicious domain, language, or vague credentials. Exercise heightened caution.`;
     case "dangerous":
-      return `DANGER: High risk of fraud (${flags.length} red flags, ${counts.critical} critical). This listing exhibits critical scam indicators such as advance-fee demands, credential harvesting, or predatory urgency. Do NOT send money or account passwords.`;
+      return `Trust Score: ${score}/100 (HIGH RISK). Severe fraud detected (${flags.length} red flags, ${counts.critical} critical). Critical scam indicators such as advance-fee demands, credential harvesting, or predatory guarantees caused heavy point deductions. Do NOT send money or account passwords.`;
   }
 }
 
@@ -585,18 +588,21 @@ export function analyzeScholarship(input) {
     categoryScores[f.category] = (categoryScores[f.category] || 0) + SEVERITY_WEIGHTS[f.severity];
   }
 
-  const rawScore = allFlags.reduce((sum, f) => sum + SEVERITY_WEIGHTS[f.severity], 0);
-  const overallRiskScore = Math.min(100, rawScore);
+  // Base score starts at 100 points, deducting penalties for detected fraud patterns
+  const rawPenalty = allFlags.reduce((sum, f) => sum + SEVERITY_WEIGHTS[f.severity], 0);
+  const totalDeduction = Math.min(100, rawPenalty);
+  const overallRiskScore = Math.max(0, 100 - totalDeduction);
   const riskLevel = computeRiskLevel(overallRiskScore);
 
   return {
     id: `report-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     scholarship: input,
     overallRiskScore,
+    deductions: totalDeduction,
     riskLevel,
     redFlags: allFlags,
     categoryScores,
-    summary: buildSummary(riskLevel, allFlags),
+    summary: buildSummary(riskLevel, allFlags, overallRiskScore),
     recommendations: buildRecommendations(riskLevel, allFlags),
     verifiedAt: new Date().toISOString(),
   };
