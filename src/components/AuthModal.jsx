@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import ThemeToggle from "./ThemeToggle";
+import { registerSchema, loginSchema, formatZodError } from "@/lib/schemas";
 
 export default function AuthModal() {
   const { login, register } = useAuth();
@@ -17,8 +18,13 @@ export default function AuthModal() {
     e.preventDefault();
     setError("");
 
-    if (!email.trim() || !password) {
-      setError("Please fill in all required fields.");
+    // Client-side schema validation using Zod
+    const schema = isRegister ? registerSchema : loginSchema;
+    const payload = isRegister ? { name, email, password } : { email, password };
+    const validation = schema.safeParse(payload);
+
+    if (!validation.success) {
+      setError(formatZodError(validation.error));
       return;
     }
 

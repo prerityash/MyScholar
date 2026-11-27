@@ -8,6 +8,7 @@
 ## 🚀 Key Capabilities
 
 - **🔐 Prisma ORM Authentication**: Complete user authentication system backed by **Prisma ORM** and SQLite. Features password hashing via `bcryptjs` and AES-encrypted HTTP-only session cookies.
+- **📐 Centralized Zod Schema Validation**: Comprehensive request payload validation and client-side pre-validation powered by **Zod** (`registerSchema`, `loginSchema`, `scholarshipInputSchema`). Ensures safe type sanitization, trimmed inputs, and consistent error messaging.
 - **🌫️ Blurred Background Login Overlay**: Unauthenticated visitors see the homepage gracefully blurred in the background with a centered, glassmorphic login and account creation modal. The navbar remains completely hidden until authentication succeeds.
 - **🌓 Dynamic Light & Dark Mode**: Persistent theme toggle supporting dark and light themes with automatic system preference detection, custom CSS variables, and an adaptive brand logo (inverted white silhouette in dark mode, crisp black silhouette in light mode).
 - **📸 1:1 Hero Slideshow**: Clean visual slideshow with smooth transitions, manual dot/arrow navigation, auto-advance timers, and custom high-resolution student celebration and cyber awareness posters.
@@ -29,6 +30,7 @@
 
 - **Framework**: Next.js 16 (App Router)
 - **Language**: JavaScript (ES Modules & React 19 JSX)
+- **Schema Validation**: Zod
 - **Database & ORM**: SQLite & Prisma ORM v6
 - **Authentication**: Bcrypt password hashing & AES-256 encrypted session cookies
 - **Styling**: Tailwind CSS & Custom Modern Glassmorphic CSS Variables
@@ -102,6 +104,7 @@ MyScholar/
 │   └── lib/
 │       ├── analysis-engine.js    # Heuristic verification & scoring engine
 │       ├── prisma.js             # PrismaClient singleton instance
+│       ├── schemas.js            # Centralized Zod schemas & error formatting
 │       └── session.js            # Encrypted session token generator & validator
 ├── eslint.config.mjs             # ESLint configuration
 ├── jsconfig.json                 # Path aliases configuration (@/* -> ./src/*)

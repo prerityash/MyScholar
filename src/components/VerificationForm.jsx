@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { scholarshipInputSchema, formatZodError } from "@/lib/schemas";
 
 const INITIAL = {
   name: "",
@@ -99,8 +100,10 @@ export default function VerificationForm({ onResult }) {
     e.preventDefault();
     setError("");
 
-    if (!form.name.trim()) {
-      setError("Please enter the scholarship name.");
+    // Validate form fields with Zod schema
+    const validation = scholarshipInputSchema.safeParse(form);
+    if (!validation.success) {
+      setError(formatZodError(validation.error));
       return;
     }
 
@@ -109,13 +112,15 @@ export default function VerificationForm({ onResult }) {
       const res = await fetch("/api/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(validation.data),
       });
-      if (!res.ok) throw new Error("Verification failed");
-      const report = await res.json();
-      onResult(report);
-    } catch {
-      setError("Something went wrong. Please try again.");
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Verification failed");
+      }
+      onResult(data);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

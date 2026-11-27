@@ -3,23 +3,26 @@ import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { createSessionToken, COOKIE_NAME } from "@/lib/session";
+import { loginSchema, formatZodError } from "@/lib/schemas";
 
 export async function POST(req) {
   try {
-    const { email, password } = await req.json();
+    const rawBody = await req.json();
 
-    if (!email || !password) {
+    // Validate request body with Zod
+    const validation = loginSchema.safeParse(rawBody);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Email and password are required." },
+        { error: formatZodError(validation.error) },
         { status: 400 }
       );
     }
 
-    const trimmedEmail = email.trim().toLowerCase();
+    const { email, password } = validation.data;
 
     // Find user by email in Prisma SQLite database
     const user = await prisma.user.findUnique({
-      where: { email: trimmedEmail },
+      where: { email },
     });
 
     if (!user) {

@@ -3,36 +3,26 @@ import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { createSessionToken, COOKIE_NAME } from "@/lib/session";
+import { registerSchema, formatZodError } from "@/lib/schemas";
 
 export async function POST(req) {
   try {
-    const { name, email, password } = await req.json();
+    const rawBody = await req.json();
 
-    if (!email || !password) {
+    // Validate request body with Zod
+    const validation = registerSchema.safeParse(rawBody);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Email and password are required." },
+        { error: formatZodError(validation.error) },
         { status: 400 }
       );
     }
 
-    const trimmedEmail = email.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      return NextResponse.json(
-        { error: "Please enter a valid email address." },
-        { status: 400 }
-      );
-    }
-
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: "Password must be at least 6 characters." },
-        { status: 400 }
-      );
-    }
+    const { name, email, password } = validation.data;
 
     // Check if user already exists
     const existing = await prisma.user.findUnique({
-      where: { email: trimmedEmail },
+      where: { email },
     });
 
     if (existing) {
@@ -48,8 +38,8 @@ export async function POST(req) {
     // Create user with Prisma
     const user = await prisma.user.create({
       data: {
-        name: (name || "").trim() || trimmedEmail.split("@")[0],
-        email: trimmedEmail,
+        name: name || email.split("@")[0],
+        email,
         password: hashedPassword,
       },
     });
