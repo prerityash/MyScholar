@@ -8,6 +8,16 @@ export const metadata: Metadata = {
     "Analyze scholarship listings for scam patterns including misleading domains, payment demands, fake organizations, copied content, and suspicious language.",
 };
 
+const themeInitScript = `
+(function() {
+  try {
+    var stored = localStorage.getItem('myscholar_theme');
+    var theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  } catch(e) {}
+})();
+`;
+
 export default function RootLayout({
   children,
 }: {
@@ -15,22 +25,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
+      <body suppressHydrationWarning>
         <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var stored = localStorage.getItem('myscholar_theme');
-                  var theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-                  document.documentElement.setAttribute('data-theme', theme);
-                } catch(e) {}
-              })();
-            `,
-          }}
+          dangerouslySetInnerHTML={{ __html: themeInitScript }}
+          suppressHydrationWarning
         />
-      </head>
-      <body>
         <Navbar />
         <main>{children}</main>
       </body>
