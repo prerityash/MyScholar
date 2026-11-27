@@ -1,8 +1,3 @@
-// ==============================================================================
-// [Unit II: Data Fetching - Client Components ("use client")]
-// [Unit II: Rendering Strategies - Client-side Rendering (Visual Metrics & Conditional UI)]
-// ==============================================================================
-
 "use client";
 
 const CATEGORY_LABELS = {

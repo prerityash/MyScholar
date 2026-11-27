@@ -1,8 +1,3 @@
-// ==============================================================================
-// [Unit II: Rendering Strategies - Client-side Rendering (useState, useEffect, Timer Interval)]
-// [Unit II: Data Fetching - Client Components ("use client")]
-// ==============================================================================
-
 "use client";
 
 import { useEffect, useState } from "react";

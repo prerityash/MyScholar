@@ -1,8 +1,3 @@
-// ==============================================================================
-// [Unit II: Data Fetching - Client Components ("use client")]
-// [Unit II: Rendering Strategies - Client-side Rendering (Theme & DOM attributes)]
-// ==============================================================================
-
 "use client";
 
 import { useEffect, useState } from "react";
