@@ -36,24 +36,6 @@ export default function AuthModal() {
     }
   };
 
-  const handleQuickDemo = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      // Try login first with demo account
-      try {
-        await login("student@myscholar.edu", "student123");
-      } catch {
-        // If not created yet, register it automatically
-        await register("Scholar Student", "student@myscholar.edu", "student123");
-      }
-    } catch (err) {
-      setError(err.message || "Failed to log in with demo account.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="auth-overlay-backdrop">
       <div className="auth-modal-card">
@@ -77,7 +59,7 @@ export default function AuthModal() {
           <p className="auth-card-subtitle">
             {isRegister
               ? "Create your account to verify scholarships safely"
-              : "Sign in with yourcredentials to unlock the portal"}
+              : "Sign in with your credentials to unlock the portal"}
           </p>
         </div>
 
@@ -178,26 +160,6 @@ export default function AuthModal() {
             )}
           </button>
         </form>
-
-        {/* Demo Account Button */}
-        <div style={{ marginTop: 18, borderTop: "1px solid var(--border-color)", paddingTop: 14 }}>
-          <button
-            type="button"
-            onClick={handleQuickDemo}
-            disabled={loading}
-            className="btn btn-ghost"
-            style={{
-              width: "100%",
-              justifyContent: "center",
-              fontSize: "0.8125rem",
-              padding: "8px 12px",
-              color: "var(--accent-blue)",
-              border: "1px dashed var(--accent-blue)",
-            }}
-          >
-            ⚡ 1-Click Demo Student Login
-          </button>
-        </div>
       </div>
     </div>
   );
