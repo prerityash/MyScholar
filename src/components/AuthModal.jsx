@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import ThemeToggle from "./ThemeToggle";
 
 export default function AuthModal() {
   const { login, register } = useAuth();
@@ -56,6 +57,11 @@ export default function AuthModal() {
   return (
     <div className="auth-overlay-backdrop">
       <div className="auth-modal-card">
+        {/* Top-Right Light Mode Toggle */}
+        <div style={{ position: "absolute", top: 16, right: 16 }}>
+          <ThemeToggle />
+        </div>
+
         {/* Header with Logo */}
         <div className="auth-card-header">
           {/* eslint-disable-next-line @next/next/no-img-element */}

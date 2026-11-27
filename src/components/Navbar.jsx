@@ -14,6 +14,14 @@ export default function Navbar() {
     { href: "/verify", label: "Verify" },
   ];
 
+  const handleLoginClick = () => {
+    const emailInput = document.querySelector(".auth-modal-card input[type='email']");
+    if (emailInput) {
+      emailInput.focus();
+      emailInput.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
   return (
     <nav className="nav glass">
       <div className="nav-inner">
@@ -40,7 +48,11 @@ export default function Navbar() {
             ))}
           </div>
 
-          {user && (
+          {/* Light / Dark Mode Toggle button placed BEFORE Login button */}
+          <ThemeToggle />
+
+          {/* Login Button or User Info Pill */}
+          {user ? (
             <div className="nav-user-pill">
               <span className="nav-user-avatar">
                 {(user.name || user.email || "U")[0].toUpperCase()}
@@ -57,9 +69,21 @@ export default function Navbar() {
                 Sign Out
               </button>
             </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleLoginClick}
+              className="btn btn-primary"
+              style={{
+                padding: "6px 18px",
+                fontSize: "0.8125rem",
+                borderRadius: "999px",
+                cursor: "pointer",
+              }}
+            >
+              Login
+            </button>
           )}
-
-          <ThemeToggle />
         </div>
       </div>
     </nav>
